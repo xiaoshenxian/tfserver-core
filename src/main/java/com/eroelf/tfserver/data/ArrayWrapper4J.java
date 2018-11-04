@@ -15,7 +15,7 @@ import com.eroelf.tfserver.exception.ShapeMismatchExceptioin;
 import com.eroelf.tfserver.exception.UnsupportedDataTypeException;
 
 /**
- * Wrap TensorFlow array data type and java {@link List}.
+ * Wraps TensorFlow array data type and java {@link List}.
  * 
  * @param <T> the element type. Must corresponds to the {@link DataType} {@code type}.
  * 

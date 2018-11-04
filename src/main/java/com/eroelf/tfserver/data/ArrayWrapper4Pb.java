@@ -30,7 +30,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
- * Wrap TensorFlow array data type and ProtoBuf {@link DataArray}.
+ * Wraps TensorFlow array data type and ProtoBuf {@link DataArray}.
  * 
  * @author weikun.zhong
  */
