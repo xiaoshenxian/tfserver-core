@@ -1,0 +1,88 @@
+syntax="proto3";
+
+import "google/protobuf/any.proto";
+
+option java_multiple_files=true;
+option java_package="com.eroelf.tfserver.datastream";
+option java_outer_classname="DataStreamProto";
+
+package datastream;
+
+service TfService
+{
+	rpc Request(RequestInfo) returns (Response) {}
+	rpc RequestStream(stream RequestInfo) returns (stream Response) {}
+}
+
+message Param
+{
+	string trace=1;
+}
+
+message FloatArray
+{
+	repeated float data=1;
+}
+
+message DoubleArray
+{
+	repeated double data=1;
+}
+
+message Int32Array
+{
+	repeated int32 data=1;
+}
+
+message UInt8Array
+{
+	bytes data=1;
+}
+
+message StringArray
+{
+	repeated string data=1;
+}
+
+message Int64Array
+{
+	repeated int64 data=1;
+}
+
+message BoolArray
+{
+	repeated bool data=1;
+}
+
+message DataArray
+{
+	int32 type_num=1;
+	repeated uint32 shape=2;
+	google.protobuf.Any data=3;
+}
+
+message Sample
+{
+	string model_name=1;
+	string model_version=2;
+	string signature_name=3;
+	map<string, DataArray> inputs=4;
+}
+
+message RequestInfo
+{
+	Param param=1;
+	Sample sample=2;
+}
+
+message Status
+{
+	sint32 code=1;
+	string des=2;
+}
+
+message Response
+{
+	Status status=1;
+	map<string, DataArray> data=2;
+}
