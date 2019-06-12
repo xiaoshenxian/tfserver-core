@@ -36,7 +36,7 @@ With the help of those data structures and tools described below, one can easily
 
 ##### Model related
 
-The *Model* class is the basic unit to run a TensorFlow exported model. A *ModelHandler* instance maintains a number of identical models to consume multiple requests simultaneously. The *ModelGroup* class is used to maintain a number of *ModelHandler* objects which are different versions under a same model name. Finally, the *ModelPool* class is designed to maintain a bunch of *ModelGroup* objects.
+The *Model* class is the basic unit to run a TensorFlow exported model. A *ModelHandler* instance maintains extra configurations of a *Model*. The *ModelGroup* class is used to maintain a number of *ModelHandler* objects which are different versions under a same model name. Finally, the *ModelPool* class is designed to maintain a bunch of *ModelGroup* objects.
 
 The *run* method of each class is the key function to run a model.
 
