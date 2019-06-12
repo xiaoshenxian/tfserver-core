@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -22,6 +21,7 @@ import com.eroelf.javaxsx.util.Strings;
 import com.eroelf.tfserver.data.ArrayWrapper;
 import com.eroelf.tfserver.data.Sample;
 import com.eroelf.tfserver.exception.UnregisteredVersionException;
+import com.eroelf.tfserver.model.handler.ModelHandler;
 
 /**
  * This class maintains a groups of {@link ModelHandler}s under the same model name but in different versions.
@@ -61,13 +61,14 @@ public final class ModelGroup implements Closeable
 		return versionMap.containsKey(version);
 	}
 
-	public void put(String version, int defaultWorkerNum, int maxWorkerNum, String... tags) throws InterruptedException, ExecutionException, IOException
+	public void put(String version, Properties defaultProperties) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException
 	{
 		checkStatus(null);
 		String versionDir=Paths.get(dirBase, version).toString();
 		Properties properties=ModelHelper.loadConfigQuiet(versionDir, "conf");
-		int theWorkerNum=ModelHelper.getWorkerNum(properties, defaultWorkerNum, maxWorkerNum);
-		ModelHandler newHandler=new ModelHandler(es, theWorkerNum, versionDir, tags);
+		properties=ModelHelper.complementFromDefault(properties, defaultProperties);
+		ModelHandler newHandler=(ModelHandler)Class.forName(properties.getProperty("handler_class")).newInstance();
+		newHandler.load(es, versionDir, properties);
 		synchronized(lock)
 		{
 			checkStatus(newHandler);
@@ -158,7 +159,7 @@ public final class ModelGroup implements Closeable
 		}
 	}
 
-	public Future<?> update(Set<String> updateVersions, Set<String> removeVersions, int defaultWorkerNum, int maxWorkerNum, String defaultVersion, String... tags)
+	public Future<?> update(Set<String> updateVersions, Set<String> removeVersions, Properties defaultProperties, String defaultVersion)
 	{
 		CountDownLatch latch=new CountDownLatch(updateVersions.size()+removeVersions.size());
 		for(String version : updateVersions)
@@ -166,9 +167,9 @@ public final class ModelGroup implements Closeable
 			es.execute(() -> {
 				try
 				{
-					put(version, defaultWorkerNum, maxWorkerNum, tags);
+					put(version, defaultProperties);
 				}
-				catch(InterruptedException|ExecutionException|IOException e)
+				catch(ClassNotFoundException|InstantiationException|IllegalAccessException|IOException e)
 				{
 					throw new RuntimeException("Exception throwed during model updating with name:version="+modelName+":"+version, e);
 				}

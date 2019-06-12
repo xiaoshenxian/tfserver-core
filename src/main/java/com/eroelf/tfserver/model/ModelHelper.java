@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 /**
  * Helps to control models and requests for a TensorFlow model server.
@@ -32,15 +33,12 @@ public class ModelHelper
 		return properties;
 	}
 
-	public static int getWorkerNum(Properties properties, int defaultWorkerNum, int maxWorkerNum)
+	public static Properties complementFromDefault(Properties properties, Properties defaultProperties)
 	{
-		try
+		for(Entry<Object, Object> entry : defaultProperties.entrySet())
 		{
-			return Math.min(Math.max(Integer.parseInt(properties.getProperty("worker_num")), 1), maxWorkerNum);
+			properties.putIfAbsent(entry.getKey(), entry.getValue());
 		}
-		catch(Exception e)
-		{
-			return defaultWorkerNum;
-		}
+		return properties;
 	}
 }

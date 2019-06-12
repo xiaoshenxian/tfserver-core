@@ -39,27 +39,23 @@ public final class ModelPool implements Closeable
 {
 	private static final Logger LOGGER=LoggerFactory.getLogger(ModelPool.class);
 
-	private static final String SERVING="serve";
-
 	private String baseDir;
+	private Properties defaultProperties;
 	private final ExecutorService es;
 	private Map<String, ModelGroup> modelGroupMap=new HashMap<>();
 	private long lastCheckedTime=0;
 
 	private final Object lock=new Object();
 
-	public ModelPool(String baseDir)
+	public ModelPool(String baseDir, Properties defaultModelHandlerProperties)
 	{
 		this.baseDir=baseDir;
+		this.defaultProperties=defaultModelHandlerProperties;
 		es=Executors.newCachedThreadPool();// Do NOT use fixed size thread pool!
 	}
 
-	public void update(int defaultWorkerNum, int maxWorkerNum)
+	public void update()
 	{
-		if(defaultWorkerNum<=0 || maxWorkerNum<=0)
-			throw new IllegalArgumentException("Both the defaultWorkerNum and the maxWorkerNum must be greater than 0!");
-		if(defaultWorkerNum>maxWorkerNum)
-			throw new IllegalArgumentException("The defaultWorkerNum must not be greater than the maxWorkerNum!");
 		synchronized(lock)
 		{
 			if(modelGroupMap!=null)
@@ -78,7 +74,7 @@ public final class ModelPool implements Closeable
 						groupName=group.getName();
 						groupPath=group.getAbsolutePath();
 						Properties properties=ModelHelper.loadConfigQuiet(groupPath, "conf");
-						int theWorkerNum=ModelHelper.getWorkerNum(properties, defaultWorkerNum, maxWorkerNum);
+						properties=ModelHelper.complementFromDefault(properties, defaultProperties);
 						List<File> modelVersionDirs=FileSysUtil.getFiles(groupPath, false, true);
 						String defaultVersion=modelVersionDirs.stream().reduce((a, b) -> {return a.lastModified()<b.lastModified() ? b : a;}).map(file -> file.getName()).orElse(null);
 						Set<String> updateSet=modelVersionDirs.stream().map(file -> file.getName()).collect(Collectors.toSet());
@@ -93,17 +89,17 @@ public final class ModelPool implements Closeable
 								if(modelGroup.containsVersion(version.getName()) && version.lastModified()<=theLastCheckedTime)
 									updateSet.remove(version.getName());
 							}
-							futures.add(modelGroup.update(updateSet, removeSet, theWorkerNum, maxWorkerNum, defaultVersion, SERVING));
+							futures.add(modelGroup.update(updateSet, removeSet, properties, defaultVersion));
 						}
 						else
 						{
 							ModelGroup modelGroup=new ModelGroup(groupPath, es);
 							removeSet=new HashSet<>();
-							futures.add(modelGroup.update(updateSet, removeSet, theWorkerNum, maxWorkerNum, defaultVersion, SERVING));
+							futures.add(modelGroup.update(updateSet, removeSet, properties, defaultVersion));
 							modelGroupMap.put(groupName, modelGroup);
 						}
 						currModelNames.remove(groupName);
-						LOGGER.info(String.format("ModelGroup \"%s\" has been checked with %s versions submitted for updating and %s versions submitted for removing with the default worker number %d, the default version will be set to (%s).", groupName, updateSet.toString(), removeSet.toString(), theWorkerNum, defaultVersion));
+						LOGGER.info(String.format("ModelGroup \"%s\" has been checked with %s versions submitted for updating and %s versions submitted for removing, the default version will be set to (%s).", groupName, updateSet.toString(), removeSet.toString(), defaultVersion));
 					}
 					catch(Exception e)
 					{
