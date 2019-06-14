@@ -3,8 +3,6 @@ package com.eroelf.tfserver.data;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.tensorflow.framework.DataType;
-
 /**
  * A TensorFlow model sample with data wrapped by {@link ArrayWrapper4Pb} and saved in a {@link com.eroelf.tfserver.datastream.Sample} object.
  * 
@@ -40,6 +38,6 @@ public class Sample4Pb implements Sample
 	@Override
 	public Map<String, ArrayWrapper> getInputs()
 	{
-		return pbSample.getInputsMap().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> new ArrayWrapper4Pb(DataType.DT_INVALID, e.getValue())));
+		return pbSample.getInputsMap().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> new ArrayWrapper4Pb(e.getValue())));
 	}
 }

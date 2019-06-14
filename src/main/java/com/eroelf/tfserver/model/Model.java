@@ -181,8 +181,6 @@ public final class Model implements AutoCloseable
 			try
 			{
 				output=outputClass.newInstance();
-				output.setType(info.dType);
-				output.setShape(shape);
 				if(info.dType==DataType.DT_STRING)
 				{
 					Object res1=ArrayUtil.toArray(new Iterator<String>() {
@@ -211,6 +209,8 @@ public final class Model implements AutoCloseable
 				}
 				else
 					output.setFeedData(res);
+				output.setType(info.dType);
+				output.setShape(shape);
 				results.put(info.name, output);
 			}
 			catch(InstantiationException|IllegalAccessException e)

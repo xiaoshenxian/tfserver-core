@@ -1,8 +1,6 @@
 package com.eroelf.tfserver.data;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -58,12 +56,18 @@ public class ArrayWrapper4Pb implements ArrayWrapper
 	public ArrayWrapper4Pb(DataArray pbData)
 	{
 		this.pbData=pbData;
-		this.type=DataType.forNumber(pbData.getTypeNum());
 	}
 
 	@Override
 	public DataType getType()
 	{
+		if(type==null)
+		{
+			if(pbData!=null)
+				this.type=DataType.forNumber(pbData.getTypeNum());
+			else
+				type=getArrayElemDataType(data);
+		}
 		return type;
 	}
 
@@ -82,26 +86,8 @@ public class ArrayWrapper4Pb implements ArrayWrapper
 					shape[i++]=x;
 				}
 			}
-			else if(data!=null && data.getClass().isArray())
-			{
-				List<Integer> li=new ArrayList<>();
-				Object obj=data;
-				do
-				{
-					int len=Array.getLength(obj);
-					li.add(len);
-					if(len>0)
-						obj=Array.get(obj, 0);
-					else
-						break;
-				}while(obj.getClass().isArray());
-				shape=new int[li.size()];
-				int i=0;
-				for(int x : li)
-				{
-					shape[i++]=x;
-				}
-			}
+			else if(data!=null)
+				shape=ArrayUtil.getShape(data);
 		}
 		return shape;
 	}
@@ -239,17 +225,18 @@ public class ArrayWrapper4Pb implements ArrayWrapper
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public DataArray getWrappedData()
+	public DataArray getWrappedData(DataType type)
 	{
 		if(pbData==null)
 		{
+			type=type!=null ? type : getType();
 			DataArray.Builder builder=DataArray.newBuilder();
-			builder.setTypeNum(getType().getNumber());
+			builder.setTypeNum(type.getNumber());
 			for(int x : shape)
 			{
 				builder.addShape(x);
 			}
-			switch(getType())
+			switch(type)
 			{
 			case DT_FLOAT:
 				pbData=builder.setData(Any.pack(FloatArray.newBuilder().addAllData(new Iterable<Float>() {
@@ -340,6 +327,8 @@ public class ArrayWrapper4Pb implements ArrayWrapper
 	@Override
 	public <T> void setFeedData(T array)
 	{
+		if(array!=null && !array.getClass().isArray())
+			throw new IllegalArgumentException("data must be an array or keep null!");
 		data=array;
 		pbData=null;
 	}
@@ -349,6 +338,5 @@ public class ArrayWrapper4Pb implements ArrayWrapper
 	{
 		pbData=(DataArray)obj;
 		data=null;
-		shape=null;
 	}
 }

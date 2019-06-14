@@ -37,7 +37,7 @@ public class ArrayWrapperSummary implements ArrayWrapper
 	}
 
 	@Override
-	public <T> T getWrappedData()
+	public <T> T getWrappedData(DataType type)
 	{
 		throw new UnsupportedOperationException("This method is not allowed!");
 	}

@@ -1,7 +1,6 @@
 package com.eroelf.tfserver.data;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -52,32 +51,16 @@ public class ArrayWrapper4J<T> implements ArrayWrapper
 	@Override
 	public DataType getType()
 	{
+		if(type==null)
+			type=getArrayElemDataType(data);
 		return type;
 	}
 
 	@Override
 	public int[] getShape()
 	{
-		if(shape==null && data!=null && data.getClass().isArray())
-		{
-			List<Integer> li=new ArrayList<>();
-			Object obj=data;
-			do
-			{
-				int len=Array.getLength(obj);
-				li.add(len);
-				if(len>0)
-					obj=Array.get(obj, 0);
-				else
-					break;
-			}while(obj.getClass().isArray());
-			shape=new int[li.size()];
-			int i=0;
-			for(int x : li)
-			{
-				shape[i++]=x;
-			}
-		}
+		if(shape==null && data!=null)
+			shape=ArrayUtil.getShape(data);
 		return shape;
 	}
 
@@ -138,13 +121,13 @@ public class ArrayWrapper4J<T> implements ArrayWrapper
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<T> getWrappedData()
+	public List<T> getWrappedData(DataType type)
 	{
 		if(listData==null)
 		{
 			listData=new ArrayList<T>();
 			Iterator<T> iter;
-			if(getType()!=DataType.DT_STRING)
+			if((type!=null ? type : getType())!=DataType.DT_STRING)
 				iter=ArrayUtil.arrayIterator(data, getShape(), 0);
 			else
 				iter=new Iterator<T>() {
@@ -192,6 +175,8 @@ public class ArrayWrapper4J<T> implements ArrayWrapper
 	@Override
 	public <U> void setFeedData(U array)
 	{
+		if(array!=null && !array.getClass().isArray())
+			throw new IllegalArgumentException("data must be an array or keep null!");
 		data=array;
 		listData=null;
 	}
