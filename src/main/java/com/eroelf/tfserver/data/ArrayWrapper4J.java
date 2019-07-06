@@ -160,6 +160,13 @@ public class ArrayWrapper4J<T> implements ArrayWrapper
 		return listData;
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<T> getWrappedData()
+	{
+		return getWrappedData(getType());
+	}
+
 	@Override
 	public void setType(DataType type)
 	{

@@ -312,6 +312,13 @@ public class ArrayWrapper4Pb implements ArrayWrapper
 		return pbData;
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public DataArray getWrappedData()
+	{
+		return getWrappedData(getType());
+	}
+
 	@Override
 	public void setType(DataType type)
 	{
