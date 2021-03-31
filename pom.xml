@@ -27,7 +27,7 @@
 
 	<properties>
 		<javaxsx.version>0.1.1</javaxsx.version>
-		<guava.version>26.0-jre</guava.version>
+		<guava.version>29.0-jre</guava.version>
 		<protobuf.version>3.8.0</protobuf.version>
 		<grpc.version>1.13.1</grpc.version>
 		<netty-all.version>4.1.25.Final</netty-all.version>
